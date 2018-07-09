@@ -1,0 +1,49 @@
+version: '3.3'
+
+services:
+
+  database_compraz:
+    image: postgres
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    volumes:
+      - ./database:/var/lib/postgresql/data
+
+  django_compraz:
+    build: .
+    environment:
+      - PYTHONUNBUFFERED=1
+    links:
+      - database_compraz
+      - redis_compraz:redis_compraz
+    volumes:
+      - ./application:/root
+    expose:
+      - "8000"
+    command: gunicorn compraz.wsgi:application -t 900 -w 2 -b :8000
+
+  redis_compraz:
+    restart: always
+    image: redis:latest
+    expose:
+      - "6379"
+
+  webserver_compraz:
+    image: nginx
+    links:
+      - django_compraz
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    environment:
+      - VIRTUAL_HOST=compraz.com.br
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=compraz.com.br
+      - LETSENCRYPT_EMAIL=brunovilarins@gmail.com
+    restart: unless-stopped
+
+networks:
+  default:
+    external:
+      name: webproxy
