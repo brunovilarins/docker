@@ -1,5 +1,6 @@
 # docker
-Rodar o comando:
+
+Arquivos para criação de ambiente docker com os containers: NGINX, NGINX Proxy, NGINX LetsEncrypt e projetos django.
 
 Para criar os containers NGINX e LetsEncrypt:
 docker-compose up -d
